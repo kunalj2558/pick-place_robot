@@ -1,0 +1,16 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ROS build artifacts (if built in-tree)
+build/
+install/
+log/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store

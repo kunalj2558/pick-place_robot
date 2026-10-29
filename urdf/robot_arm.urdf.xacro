@@ -1,0 +1,651 @@
+<?xml version="1.0"?>
+<robot name="synora_robot_arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Arguments -->
+  <xacro:arg name="controllers_file" default="$(find synora_robot_arm)/config/robot_controllers.yaml" />
+
+  <!-- Include ros2_control macro -->
+  <xacro:include filename="ros2_control.xacro" />
+
+  <!-- Color Definitions for RViz (Universal Robots + Robotiq Theme) -->
+  <material name="ur_aluminum">
+    <color rgba="0.86 0.87 0.89 1.0"/>
+  </material>
+  <material name="ur_joint_gray">
+    <color rgba="0.40 0.42 0.45 1.0"/>
+  </material>
+  <material name="ur_joint_dark">
+    <color rgba="0.25 0.26 0.28 1.0"/>
+  </material>
+  <material name="gripper_body_black">
+    <color rgba="0.12 0.12 0.14 1.0"/>
+  </material>
+  <material name="gripper_pad_black">
+    <color rgba="0.20 0.20 0.22 1.0"/>
+  </material>
+  <material name="accent_silver">
+    <color rgba="0.92 0.92 0.95 1.0"/>
+  </material>
+
+  <!-- World Anchor Frame -->
+  <link name="world"/>
+
+  <!-- Fixed Joint: World to Base -->
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ========================================================= -->
+  <!-- 1. BASE LINK (Pedestal with Mounting Flange Ring)         -->
+  <!-- ========================================================= -->
+  <link name="base_link">
+    <!-- Base Mounting Flange Disc -->
+    <visual>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.10" length="0.02"/>
+      </geometry>
+      <material name="ur_joint_dark"/>
+    </visual>
+    <!-- Base Pedestal Cylinder -->
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.08"/>
+      </geometry>
+      <material name="ur_joint_gray"/>
+    </visual>
+    <!-- Top Chamfer Ring -->
+    <visual>
+      <origin xyz="0 0 0.09" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.078" length="0.01"/>
+      </geometry>
+      <material name="accent_silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.085" length="0.10"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <mass value="4.0"/>
+      <inertia ixx="0.0085" ixy="0.0" ixz="0.0"
+               iyy="0.0085" iyz="0.0" izz="0.0128"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- JOINT 1: Shoulder Pan (Base Yaw around Z)                 -->
+  <!-- ========================================================= -->
+  <joint name="shoulder_pan_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="shoulder_link"/>
+    <origin xyz="0 0 0.095" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="150.0" velocity="3.14"/>
+    <dynamics damping="0.8" friction="0.2"/>
+  </joint>
+
+  <!-- 2. SHOULDER LINK (Cobot Turret with Transverse Actuator)  -->
+  <link name="shoulder_link">
+    <!-- Vertical Rotating Turret Base -->
+    <visual>
+      <origin xyz="0 0 0.045" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.09"/>
+      </geometry>
+      <material name="ur_joint_gray"/>
+    </visual>
+    <!-- Transverse Shoulder Pivot Motor Cylinder (Offset along Y) -->
+    <visual>
+      <origin xyz="0 0.035 0.09" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.065" length="0.14"/>
+      </geometry>
+      <material name="ur_joint_dark"/>
+    </visual>
+    <!-- Joint Decorative Cap Ring -->
+    <visual>
+      <origin xyz="0 -0.036 0.09" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.067" length="0.005"/>
+      </geometry>
+      <material name="accent_silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0.02 0.07" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.08" length="0.14"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0.02 0.07" rpy="0 0 0"/>
+      <mass value="3.5"/>
+      <inertia ixx="0.0090" ixy="0.0" ixz="0.0"
+               iyy="0.0090" iyz="0.0" izz="0.0098"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- JOINT 2: Shoulder Lift (Pitch around Y)                   -->
+  <!-- ========================================================= -->
+  <joint name="shoulder_lift_joint" type="revolute">
+    <parent link="shoulder_link"/>
+    <child link="upper_arm_link"/>
+    <origin xyz="0 0.085 0.09" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="150.0" velocity="3.14"/>
+    <dynamics damping="0.8" friction="0.2"/>
+  </joint>
+
+  <!-- 3. UPPER ARM LINK (Cobot Aluminum Tube with Joint Hubs)   -->
+  <link name="upper_arm_link">
+    <!-- Shoulder End Cap / Joint Collar -->
+    <visual>
+      <origin xyz="0 0 0.0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.065" length="0.075"/>
+      </geometry>
+      <material name="ur_joint_gray"/>
+    </visual>
+    <!-- Main Anodized Aluminum Arm Tube -->
+    <visual>
+      <origin xyz="0 0 0.21" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.046" length="0.36"/>
+      </geometry>
+      <material name="ur_aluminum"/>
+    </visual>
+    <!-- Elbow End Cap / Joint Collar -->
+    <visual>
+      <origin xyz="0 0 0.42" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.060" length="0.075"/>
+      </geometry>
+      <material name="ur_joint_gray"/>
+    </visual>
+    <!-- Aluminum Joint Ring Accents -->
+    <visual>
+      <origin xyz="0 0 0.04" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.048" length="0.01"/>
+      </geometry>
+      <material name="accent_silver"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.38" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.048" length="0.01"/>
+      </geometry>
+      <material name="accent_silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.21" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.055" length="0.42"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.21" rpy="0 0 0"/>
+      <mass value="3.0"/>
+      <inertia ixx="0.0415" ixy="0.0" ixz="0.0"
+               iyy="0.0415" iyz="0.0" izz="0.0030"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- JOINT 3: Elbow (Pitch around Y)                           -->
+  <!-- ========================================================= -->
+  <joint name="elbow_joint" type="revolute">
+    <parent link="upper_arm_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="0 -0.065 0.42" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="120.0" velocity="3.14"/>
+    <dynamics damping="0.6" friction="0.15"/>
+  </joint>
+
+  <!-- 4. FOREARM LINK (Cobot Aluminum Tube)                    -->
+  <link name="forearm_link">
+    <!-- Elbow Joint Housing Cylinder -->
+    <visual>
+      <origin xyz="0 0 0.0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.055" length="0.075"/>
+      </geometry>
+      <material name="ur_joint_dark"/>
+    </visual>
+    <!-- Forearm Anodized Aluminum Tube -->
+    <visual>
+      <origin xyz="0 0 0.18" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.038" length="0.30"/>
+      </geometry>
+      <material name="ur_aluminum"/>
+    </visual>
+    <!-- Wrist 1 Mounting Collar -->
+    <visual>
+      <origin xyz="0 0 0.36" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.065"/>
+      </geometry>
+      <material name="ur_joint_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.18" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.36"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.18" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.0210" ixy="0.0" ixz="0.0"
+               iyy="0.0210" iyz="0.0" izz="0.0014"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- JOINT 4: Wrist 1 (Wrist Pitch around Y)                   -->
+  <!-- ========================================================= -->
+  <joint name="wrist_1_joint" type="revolute">
+    <parent link="forearm_link"/>
+    <child link="wrist_1_link"/>
+    <origin xyz="0 0 0.36" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14159" upper="3.14159" effort="50.0" velocity="3.2"/>
+    <dynamics damping="0.3" friction="0.1"/>
+  </joint>
+
+  <!-- 5. WRIST 1 LINK                                           -->
+  <link name="wrist_1_link">
+    <!-- Cross Pivot Cylinder -->
+    <visual>
+      <origin xyz="0 0 0.0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.042" length="0.065"/>
+      </geometry>
+      <material name="ur_joint_dark"/>
+    </visual>
+    <!-- Vertical Neck -->
+    <visual>
+      <origin xyz="0 0 0.035" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.036" length="0.05"/>
+      </geometry>
+      <material name="ur_joint_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.06"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <mass value="0.8"/>
+      <inertia ixx="0.00050" ixy="0.0" ixz="0.0"
+               iyy="0.00050" iyz="0.0" izz="0.00049"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- JOINT 5: Wrist 2 (Wrist Yaw around Z)                     -->
+  <!-- ========================================================= -->
+  <joint name="wrist_2_joint" type="revolute">
+    <parent link="wrist_1_link"/>
+    <child link="wrist_2_link"/>
+    <origin xyz="0 0 0.06" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="40.0" velocity="3.2"/>
+    <dynamics damping="0.2" friction="0.08"/>
+  </joint>
+
+  <!-- 6. WRIST 2 LINK                                           -->
+  <link name="wrist_2_link">
+    <visual>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.036" length="0.04"/>
+      </geometry>
+      <material name="ur_joint_gray"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.04" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.036" length="0.065"/>
+      </geometry>
+      <material name="ur_joint_dark"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.038" length="0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <mass value="0.6"/>
+      <inertia ixx="0.00030" ixy="0.0" ixz="0.0"
+               iyy="0.00030" iyz="0.0" izz="0.00036"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- JOINT 6: Wrist 3 (Tool Roll / Spin around Z)              -->
+  <!-- ========================================================= -->
+  <joint name="wrist_3_joint" type="revolute">
+    <parent link="wrist_2_link"/>
+    <child link="wrist_3_link"/>
+    <origin xyz="0 0 0.045" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="30.0" velocity="3.5"/>
+    <dynamics damping="0.1" friction="0.05"/>
+  </joint>
+
+  <!-- 7. WRIST 3 LINK (Tool Mounting Flange Disc)               -->
+  <link name="wrist_3_link">
+    <visual>
+      <origin xyz="0 0 0.0075" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.038" length="0.015"/>
+      </geometry>
+      <material name="accent_silver"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.034" length="0.004"/>
+      </geometry>
+      <material name="ur_joint_dark"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.038" length="0.016"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <mass value="0.3"/>
+      <inertia ixx="0.00011" ixy="0.0" ixz="0.0"
+               iyy="0.00011" iyz="0.0" izz="0.00021"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- FIXED TOOL JOINT: Flange to Gripper Body                  -->
+  <!-- ========================================================= -->
+  <joint name="wrist_to_tool_joint" type="fixed">
+    <parent link="wrist_3_link"/>
+    <child link="tool_link"/>
+    <origin xyz="0 0 0.017" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ========================================================= -->
+  <!-- 8. TOOL LINK (Robotiq 2F-85 Style Industrial Gripper)     -->
+  <!-- ========================================================= -->
+  <link name="tool_link">
+    <!-- Main Gripper Palm Housing (Black Tapered Chassis) -->
+    <visual>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.038" length="0.06"/>
+      </geometry>
+      <material name="gripper_body_black"/>
+    </visual>
+    <!-- Finger Mounting Actuator Bracket -->
+    <visual>
+      <origin xyz="0 0 0.065" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.045 0.105 0.02"/>
+      </geometry>
+      <material name="gripper_body_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.04" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.05 0.11 0.08"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.04" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.00060" ixy="0.0" ixz="0.0"
+               iyy="0.00025" iyz="0.0" izz="0.00065"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- GRIPPER JOINTS (Dual Symmetrical Prismatic Sliding)       -->
+  <!-- ========================================================= -->
+  <!-- Left Finger Joint (Moves +Y outward when opening) -->
+  <joint name="left_finger_joint" type="prismatic">
+    <parent link="tool_link"/>
+    <child link="left_finger_link"/>
+    <origin xyz="0 0.010 0.075" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0.0" upper="0.035" effort="40.0" velocity="0.12"/>
+    <dynamics damping="0.2" friction="0.08"/>
+  </joint>
+
+  <!-- 9. Left Finger Link (Robotiq-style Articulated Knuckle) -->
+  <link name="left_finger_link">
+    <!-- Finger Knuckle Bar -->
+    <visual>
+      <origin xyz="0 0.006 0.035" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.022 0.012 0.07"/>
+      </geometry>
+      <material name="gripper_body_black"/>
+    </visual>
+    <!-- Inner High-Friction Grip Pad -->
+    <visual>
+      <origin xyz="0 -0.001 0.035" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.020 0.004 0.065"/>
+      </geometry>
+      <material name="gripper_pad_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0.005 0.035" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.024 0.014 0.07"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0.005 0.035" rpy="0 0 0"/>
+      <mass value="0.06"/>
+      <inertia ixx="0.000035" ixy="0.0" ixz="0.0"
+               iyy="0.000038" iyz="0.0" izz="0.000008"/>
+    </inertial>
+  </link>
+
+  <!-- Right Finger Joint (Moves -Y outward when opening) -->
+  <joint name="right_finger_joint" type="prismatic">
+    <parent link="tool_link"/>
+    <child link="right_finger_link"/>
+    <origin xyz="0 -0.010 0.075" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0.0" upper="0.035" effort="40.0" velocity="0.12"/>
+    <dynamics damping="0.2" friction="0.08"/>
+  </joint>
+
+  <!-- 10. Right Finger Link -->
+  <link name="right_finger_link">
+    <!-- Finger Knuckle Bar -->
+    <visual>
+      <origin xyz="0 -0.006 0.035" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.022 0.012 0.07"/>
+      </geometry>
+      <material name="gripper_body_black"/>
+    </visual>
+    <!-- Inner High-Friction Grip Pad -->
+    <visual>
+      <origin xyz="0 0.001 0.035" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.020 0.004 0.065"/>
+      </geometry>
+      <material name="gripper_pad_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.005 0.035" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.024 0.014 0.07"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 -0.005 0.035" rpy="0 0 0"/>
+      <mass value="0.06"/>
+      <inertia ixx="0.000035" ixy="0.0" ixz="0.0"
+               iyy="0.000038" iyz="0.0" izz="0.000008"/>
+    </inertial>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- Gazebo Simulation Materials (Harmonic Realistic PBR)      -->
+  <!-- ========================================================= -->
+  <gazebo reference="base_link">
+    <visual>
+      <material>
+        <ambient>0.40 0.42 0.45 1</ambient>
+        <diffuse>0.40 0.42 0.45 1</diffuse>
+        <specular>0.6 0.6 0.6 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="shoulder_link">
+    <visual>
+      <material>
+        <ambient>0.40 0.42 0.45 1</ambient>
+        <diffuse>0.40 0.42 0.45 1</diffuse>
+        <specular>0.6 0.6 0.6 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="upper_arm_link">
+    <visual>
+      <material>
+        <ambient>0.86 0.87 0.89 1</ambient>
+        <diffuse>0.86 0.87 0.89 1</diffuse>
+        <specular>0.9 0.9 0.9 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="forearm_link">
+    <visual>
+      <material>
+        <ambient>0.86 0.87 0.89 1</ambient>
+        <diffuse>0.86 0.87 0.89 1</diffuse>
+        <specular>0.9 0.9 0.9 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="wrist_1_link">
+    <visual>
+      <material>
+        <ambient>0.40 0.42 0.45 1</ambient>
+        <diffuse>0.40 0.42 0.45 1</diffuse>
+        <specular>0.6 0.6 0.6 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="wrist_2_link">
+    <visual>
+      <material>
+        <ambient>0.40 0.42 0.45 1</ambient>
+        <diffuse>0.40 0.42 0.45 1</diffuse>
+        <specular>0.6 0.6 0.6 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="wrist_3_link">
+    <visual>
+      <material>
+        <ambient>0.86 0.87 0.89 1</ambient>
+        <diffuse>0.86 0.87 0.89 1</diffuse>
+        <specular>0.9 0.9 0.9 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="tool_link">
+    <visual>
+      <material>
+        <ambient>0.12 0.12 0.14 1</ambient>
+        <diffuse>0.12 0.12 0.14 1</diffuse>
+        <specular>0.4 0.4 0.4 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="left_finger_link">
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>10.0</mu>
+            <mu2>10.0</mu2>
+          </ode>
+        </friction>
+        <contact>
+          <ode>
+            <min_depth>0.002</min_depth>
+            <kp>1000000.0</kp>
+            <kd>1.0</kd>
+          </ode>
+        </contact>
+      </surface>
+    </collision>
+    <visual>
+      <material>
+        <ambient>0.14 0.14 0.16 1</ambient>
+        <diffuse>0.14 0.14 0.16 1</diffuse>
+        <specular>0.4 0.4 0.4 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="right_finger_link">
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>10.0</mu>
+            <mu2>10.0</mu2>
+          </ode>
+        </friction>
+        <contact>
+          <ode>
+            <min_depth>0.002</min_depth>
+            <kp>1000000.0</kp>
+            <kd>1.0</kd>
+          </ode>
+        </contact>
+      </surface>
+    </collision>
+    <visual>
+      <material>
+        <ambient>0.14 0.14 0.16 1</ambient>
+        <diffuse>0.14 0.14 0.16 1</diffuse>
+        <specular>0.4 0.4 0.4 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <!-- Instantiate ros2_control configuration -->
+  <xacro:synora_robot_arm_ros2_control controllers_file="$(arg controllers_file)"/>
+
+</robot>

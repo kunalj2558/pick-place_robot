@@ -1,0 +1,423 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <world name="robot_arm_world">
+    <!-- Physics Configuration (DART Engine) -->
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- Core Simulation Plugins -->
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <!-- Sun Directional Light -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.92 1</diffuse>
+      <specular>0.3 0.3 0.35 1</specular>
+      <direction>-0.4 0.2 -0.9</direction>
+    </light>
+
+    <!-- Ground Plane -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>25 25</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>25 25</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.82 0.82 0.85 1</ambient>
+            <diffuse>0.82 0.82 0.85 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Workstation Table in Front of Robot -->
+    <model name="work_table">
+      <static>true</static>
+      <pose>0.48 0 0.12 0 0 0</pose>
+      <link name="table_link">
+        <collision name="table_collision">
+          <geometry>
+            <box>
+              <size>0.50 0.85 0.24</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="table_visual">
+          <geometry>
+            <box>
+              <size>0.50 0.85 0.24</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.30 0.32 0.35 1</ambient>
+            <diffuse>0.30 0.32 0.35 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 1. Gray Industrial Plastic Tote / Crate (Matching Photo - Hollow Open Container) -->
+    <model name="gray_storage_tote">
+      <static>true</static>
+      <pose>0.42 0.15 0.24 0 0 0</pose>
+      <link name="tote_link">
+        <!-- Floor Base Plate -->
+        <visual name="tote_base_visual">
+          <pose>0 0 0.0075 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.24 0.32 0.015</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.60 0.62 0.65 1</ambient>
+            <diffuse>0.60 0.62 0.65 1</diffuse>
+          </material>
+        </visual>
+        <collision name="tote_base_collision">
+          <pose>0 0 0.0075 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.24 0.32 0.015</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Front Wall (+X) -->
+        <visual name="tote_front_visual">
+          <pose>0.115 0 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.32 0.07</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.55 0.57 0.60 1</ambient>
+            <diffuse>0.55 0.57 0.60 1</diffuse>
+          </material>
+        </visual>
+        <collision name="tote_front_collision">
+          <pose>0.115 0 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.32 0.07</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Back Wall (-X) -->
+        <visual name="tote_back_visual">
+          <pose>-0.115 0 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.32 0.07</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.55 0.57 0.60 1</ambient>
+            <diffuse>0.55 0.57 0.60 1</diffuse>
+          </material>
+        </visual>
+        <collision name="tote_back_collision">
+          <pose>-0.115 0 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.32 0.07</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Left Wall (+Y) -->
+        <visual name="tote_left_visual">
+          <pose>0 0.155 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.07</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.55 0.57 0.60 1</ambient>
+            <diffuse>0.55 0.57 0.60 1</diffuse>
+          </material>
+        </visual>
+        <collision name="tote_left_collision">
+          <pose>0 0.155 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.07</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Right Wall (-Y) -->
+        <visual name="tote_right_visual">
+          <pose>0 -0.155 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.07</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.55 0.57 0.60 1</ambient>
+            <diffuse>0.55 0.57 0.60 1</diffuse>
+          </material>
+        </visual>
+        <collision name="tote_right_collision">
+          <pose>0 -0.155 0.045 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.07</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- 2. Cardboard Shipping Carton Box (Matching Photo - Hollow Open Container) -->
+    <model name="cardboard_box">
+      <static>true</static>
+      <pose>0.45 -0.18 0.24 0 0 0</pose>
+      <link name="box_link">
+        <!-- Floor Base Plate -->
+        <visual name="box_base_visual">
+          <pose>0 0 0.0075 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.24 0.26 0.015</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.72 0.55 0.38 1</ambient>
+            <diffuse>0.72 0.55 0.38 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+        <collision name="box_base_collision">
+          <pose>0 0 0.0075 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.24 0.26 0.015</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Front Wall (+X) -->
+        <visual name="box_front_visual">
+          <pose>0.115 0 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.26 0.09</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.72 0.55 0.38 1</ambient>
+            <diffuse>0.72 0.55 0.38 1</diffuse>
+          </material>
+        </visual>
+        <collision name="box_front_collision">
+          <pose>0.115 0 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.26 0.09</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Back Wall (-X) -->
+        <visual name="box_back_visual">
+          <pose>-0.115 0 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.26 0.09</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.72 0.55 0.38 1</ambient>
+            <diffuse>0.72 0.55 0.38 1</diffuse>
+          </material>
+        </visual>
+        <collision name="box_back_collision">
+          <pose>-0.115 0 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.26 0.09</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Left Wall (+Y) -->
+        <visual name="box_left_visual">
+          <pose>0 0.125 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.09</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.72 0.55 0.38 1</ambient>
+            <diffuse>0.72 0.55 0.38 1</diffuse>
+          </material>
+        </visual>
+        <collision name="box_left_collision">
+          <pose>0 0.125 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.09</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Right Wall (-Y) -->
+        <visual name="box_right_visual">
+          <pose>0 -0.125 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.09</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.72 0.55 0.38 1</ambient>
+            <diffuse>0.72 0.55 0.38 1</diffuse>
+          </material>
+        </visual>
+        <collision name="box_right_collision">
+          <pose>0 -0.125 0.055 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.22 0.01 0.09</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- Outward Angled Open Flaps (Aesthetic UR5/Robotiq Packaging Style) -->
+        <visual name="box_flap_front">
+          <pose>0.128 0 0.108 0 0.6 0</pose>
+          <geometry>
+            <box>
+              <size>0.005 0.26 0.04</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.68 0.50 0.35 1</ambient>
+            <diffuse>0.68 0.50 0.35 1</diffuse>
+          </material>
+        </visual>
+        <visual name="box_flap_back">
+          <pose>-0.128 0 0.108 0 -0.6 0</pose>
+          <geometry>
+            <box>
+              <size>0.005 0.26 0.04</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.68 0.50 0.35 1</ambient>
+            <diffuse>0.68 0.50 0.35 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 3. Target Bottle with Orange Cap (Dynamic Pickable Object) -->
+    <model name="vitamin_bottle">
+      <static>false</static>
+      <pose>0.42 0.15 0.289 0 0 0</pose>
+      <link name="bottle_link">
+        <inertial>
+          <mass>0.08</mass>
+          <inertia>
+            <ixx>0.00005</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.00005</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.00002</izz>
+          </inertia>
+        </inertial>
+        <!-- White Jar Body -->
+        <visual name="bottle_body">
+          <geometry>
+            <cylinder>
+              <radius>0.022</radius>
+              <length>0.055</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.92 0.90 0.82 1</ambient>
+            <diffuse>0.92 0.90 0.82 1</diffuse>
+          </material>
+        </visual>
+        <!-- Bright Orange Cap -->
+        <visual name="bottle_cap">
+          <pose>0 0 0.032 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.023</radius>
+              <length>0.012</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.96 0.52 0.08 1</ambient>
+            <diffuse>0.96 0.52 0.08 1</diffuse>
+          </material>
+        </visual>
+        <collision name="bottle_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.022</radius>
+              <length>0.068</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>5.0</mu>
+                <mu2>5.0</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <min_depth>0.002</min_depth>
+                <kp>1000000.0</kp>
+                <kd>1.0</kd>
+              </ode>
+            </contact>
+          </surface>
+        </collision>
+      </link>
+    </model>
+
+  </world>
+</sdf>
